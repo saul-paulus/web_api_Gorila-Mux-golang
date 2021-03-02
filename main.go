@@ -29,6 +29,7 @@ type Mahasiswa struct {
 }
 
 var err error
+var mahasiswa Mahasiswa
 
 var dataMahasiswa = []Mahasiswa{
 	Mahasiswa{3, 323233332, "rudi", "teknik sipil"},
@@ -49,5 +50,8 @@ func getAllMahasiswa(w http.ResponseWriter, r *http.Request) {
 
 func createMahasiswa(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	json.NewDecoder(r.Body).Decode(&mahasiswa)
+	dataMahasiswa = append(dataMahasiswa, mahasiswa)
+	w.Write([]byte("Data berhasil disimpan"))
 
 }
