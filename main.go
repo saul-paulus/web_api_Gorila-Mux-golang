@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -13,8 +14,9 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", index).Methods("GET")
-	router.HandleFunc("/mahasiswa", getAllMahasiswa).Methods("GET")
-	router.HandleFunc("/mahasiswa", createMahasiswa).Methods("POST")
+	router.HandleFunc("/v1/api/mahasiswa", getAllMahasiswa).Methods("GET")
+	router.HandleFunc("/v1/api/mahasiswa", createMahasiswa).Methods("POST")
+	router.HandleFunc("/v1/api/mahasiswa/id={id}", getIdMahasiswa).Methods("GET")
 
 	fmt.Println("server berjalan pada 127.0.0.1:8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
@@ -50,8 +52,23 @@ func getAllMahasiswa(w http.ResponseWriter, r *http.Request) {
 
 func createMahasiswa(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	json.NewDecoder(r.Body).Decode(&mahasiswa)
 	dataMahasiswa = append(dataMahasiswa, mahasiswa)
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Data berhasil disimpan"))
 
+}
+
+func getIdMahasiswa(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	inputId := params["id"]
+	resInput, _ := strconv.Atoi(inputId)
+	for i, u := range dataMahasiswa {
+		if u.ID == resInput {
+			json.NewEncoder(w).Encode(dataMahasiswa[i])
+		}
+	}
 }
