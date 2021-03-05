@@ -17,6 +17,7 @@ func main() {
 	router.HandleFunc("/v1/api/mahasiswa", getAllMahasiswa).Methods("GET")
 	router.HandleFunc("/v1/api/mahasiswa", createMahasiswa).Methods("POST")
 	router.HandleFunc("/v1/api/mahasiswa/id={id}", getIdMahasiswa).Methods("GET")
+	router.HandleFunc("/v1/api/mahasiswa/id={id}", updateMahasiswa).Methods("PUT")
 
 	fmt.Println("server berjalan pada 127.0.0.1:8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
@@ -61,14 +62,50 @@ func createMahasiswa(w http.ResponseWriter, r *http.Request) {
 }
 
 func getIdMahasiswa(w http.ResponseWriter, r *http.Request) {
-
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	inputId := params["id"]
-	resInput, _ := strconv.Atoi(inputId)
+	id := params["id"]
+	resInput, _ := strconv.Atoi(id)
 	for i, u := range dataMahasiswa {
 		if u.ID == resInput {
 			json.NewEncoder(w).Encode(dataMahasiswa[i])
+		} else {
+			http.Error(w, "tidak ada id yang cocok", http.StatusBadRequest)
+			return
 		}
 	}
+	return
+}
+
+func updateMahasiswa(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var reqBody Mahasiswa
+	params := mux.Vars(r)
+	id, _ := strconv.Atoi(params["id"])
+	for i, u := range dataMahasiswa {
+		if u.ID == id {
+			dataMahasiswa[i].ID = reqBody.ID
+			dataMahasiswa[i].Nim = reqBody.Nim
+			dataMahasiswa[i].Nama = reqBody.Nama
+			dataMahasiswa[i].Jurusan = reqBody.Jurusan
+		}
+	}
+	w.Write([]byte("Data berhasil diupdate"))
+
+}
+
+func deleteMahasiswa(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	params := mux.Vars(r)
+	id, _ := strconv.Atoi(params["id"])
+
+	for i, u := range dataMahasiswa {
+		if u.ID == id {
+			dataMahasiswa = append(dataMahasiswa[:i], dataMahasiswa[i+1:]...)
+		} else {
+			http.Error(w, "tidak ada Id terdaftar", http.StatusBadRequest)
+		}
+	}
+	return
 }
